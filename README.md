@@ -5,6 +5,8 @@
 
 Zeno Atom is a small state management library for React.
 
+**Note:** This library requires TypeScript 4.0, which is currently in beta! (install as `typescript@beta`).
+
 It has a very limited API and does not try to reduce full-fledged state management solutions like [zeno](https://github.com/bearbytes/zeno) or [Redux](https://github.com/reduxjs/redux), and is not meant to manage global state.
 
 Instead, it is meant to be used in slightly more complex components, that outgrow simple state management using `useState` and require more prop drilling or `useReducer` semantics.
