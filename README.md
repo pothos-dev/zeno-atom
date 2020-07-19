@@ -23,7 +23,7 @@ yarn add @bearbytes/zeno-atom
 ### Basic Example
 
 ```tsx
-import zenoAtom from '@bearbytes/zeno-atom'
+import { zenoAtom } from '@bearbytes/zeno-atom'
 
 // Creates a Context that can be quickly accessed in deeply nested components.
 //
