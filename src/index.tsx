@@ -47,7 +47,7 @@ type MessageArgs<Func> = Func extends (state: any, ...args: infer Args) => any
   ? Args
   : never
 
-export default function zenoAtom<State, Messages extends AtomMessages<State>>(
+export function zenoAtom<State, Messages extends AtomMessages<State>>(
   atom: AtomInterface<State, Messages>
 ): Atom<State, Messages> {
   const atomContext = createContext({
