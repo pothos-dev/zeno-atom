@@ -1,5 +1,4 @@
 [![NPM Version](https://img.shields.io/npm/v/@bearbytes/zeno-atom.svg?style=flat)](https://www.npmjs.com/package/@bearbytes/zeno-atom)
-[![Actions Status](https://github.com/bearbytes/zeno-atom/workflows/CI/badge.svg)](https://github.com/bearbytes/zeno-atom/actions)
 
 # zeno-atom
 
