@@ -39,7 +39,8 @@ const [CounterProvider, useCounter] = zenoAtom({
 })
 
 // The Root component uses the Provider to manage a copy of the atom state.
-// You can optionally pass different initial state object to the provider, or just use the state defined above.
+// You can optionally pass different initial state object to the provider,
+// or just use the state defined above.
 function MyComplexCounter() {
   return (
     <CounterProvider>
@@ -57,13 +58,15 @@ function CounterLabel() {
 }
 
 // All messages defined above can be called on the `dispatch` object returned by the hook.
-// The first argument (state) of the message is omitted on the call side and will automatically be sourced from the context.
+// The first argument (state) of the message is omitted on the call side and will
+// automatically be sourced from the context.
 function ResetButton() {
   const { dispatch } = useCounter()
   return <Button onPress={dispatch.resetCounter}>Reset</Button>
 }
 
-// If additional arguments are defined for messages, the compiler provides autocompletion and type checking for these arguments.
+// If additional arguments are defined for messages, the compiler provides
+// autocompletion and type checking for these arguments.
 function PlusOneButton() {
   const { dispatch } = useCounter()
   return <Button onPress={() => dispatch.incrementCounter(1)}>+1</Button>
