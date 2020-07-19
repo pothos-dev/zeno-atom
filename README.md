@@ -41,8 +41,8 @@ const [CounterProvider, useCounter] = zenoAtom({
 })
 
 // The Root component uses the Provider to manage a copy of the atom state.
-// You can optionally pass different initial state object to the provider,
-// or just use the state defined above.
+// You can optionally pass a different initial state object to the provider,
+// or just use the default state defined above.
 function MyComplexCounter() {
   return (
     <CounterProvider>
