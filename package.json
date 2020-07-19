@@ -1,0 +1,42 @@
+{
+  "name": "@bearbytes/zeno-atom",
+  "version": "1.0.0",
+  "description": "Typesafe replacement for React's useReducer hook.",
+  "keywords": [
+    "typescript",
+    "typesafe",
+    "useReducer",
+    "react",
+    "hooks"
+  ],
+  "author": "pancomputationalist@mailbox.org",
+  "license": "ISC",
+  "homepage": "https://github.com/bearbytes/zeno-atom",
+  "repository": "https://github.com/bearbytes/zeno-atom.git",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "dependencies": {
+    "immer": "7.0.5"
+  },
+  "peerDependencies": {
+    "react": "16.13.1"
+  },
+  "devDependencies": {
+    "@types/react": "^16.9.43",
+    "np": "^6.3.2",
+    "react": "^16.13.1",
+    "typescript": "beta"
+  },
+  "scripts": {
+    "prepare": "rm -rf dist && tsc",
+    "test": "jest",
+    "release": "np --no-yarn"
+  }
+}
