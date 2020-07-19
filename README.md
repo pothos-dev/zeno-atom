@@ -71,13 +71,13 @@ function CounterLabel() {
 // automatically be sourced from the context.
 function ResetButton() {
   const { dispatch } = useCounter()
-  return <Button onPress={dispatch.resetCounter}>Reset</Button>
+  return <Button title={'Reset'} onPress={dispatch.resetCounter} />
 }
 
 // If additional arguments are defined for messages, the compiler provides
 // autocompletion and type checking for these arguments.
 function PlusOneButton() {
   const { dispatch } = useCounter()
-  return <Button onPress={() => dispatch.incrementCounter(1)}>+1</Button>
+  return <Button title={'+1'} onPress={() => dispatch.incrementCounter(1)} />
 }
 ```
