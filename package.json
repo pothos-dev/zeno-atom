@@ -1,6 +1,6 @@
 {
   "name": "@bearbytes/zeno-atom",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Typesafe replacement for React's useReducer hook.",
   "keywords": [
     "typescript",
