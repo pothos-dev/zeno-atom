@@ -12,7 +12,15 @@ Instead, it is meant to be used within complex components or screens, where you 
 
 The library provides a single function, `zenoAtom`, which is a typescript-friendly API to set up a React Context with some state and some messages that act on the state. This is similar to `useReducer`, where you dispatch pre-defined messages, but uses [Immer](https://github.com/immerjs/immer) to allow mutating the state object in-place.
 
-Basic Example:
+### Installation
+
+```
+npm i @bearytes/zeno-atom
+# or
+yarn add @bearbytes/zeno-atom
+```
+
+### Basic Example
 
 ```tsx
 import zenoAtom from '@bearbytes/zeno-atom'
