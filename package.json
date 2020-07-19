@@ -36,7 +36,7 @@
   },
   "scripts": {
     "prepare": "rm -rf dist && tsc",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "release": "np --no-yarn"
   }
 }
