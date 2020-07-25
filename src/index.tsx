@@ -12,17 +12,17 @@ import {
  * Base types to constrain generic type arguments
  */
 
-type AtomProps = {
+type BaseProps = {
   [propName: string]: any
 }
-type AtomState = any
-type AtomSelectors<State extends AtomState> = {
+type BaseState = Record<string, any>
+type BaseSelectors<State extends BaseState> = {
   [functionName: string]: (state: State) => any
 }
-type AtomStateUpdaters<State extends AtomState> = {
+type BaseUpdaters<State extends BaseState> = {
   [functionName: string]: (state: State, ...params: any[]) => void
 }
-type AtomCallbacks = {
+type BaseCallbacks = {
   [functionName: string]: (...params: any[]) => void
 }
 
@@ -31,25 +31,22 @@ type AtomCallbacks = {
  */
 
 type CreateAtomArgs<
-  Props extends AtomProps,
-  State extends AtomState,
-  Selectors extends AtomSelectors<State>,
-  Updaters extends AtomStateUpdaters<State>,
-  Callbacks extends AtomCallbacks
+  Props extends BaseProps,
+  State extends BaseState,
+  Selectors extends BaseSelectors<State>,
+  Updaters extends BaseUpdaters<State>,
+  Callbacks extends BaseCallbacks
 > =
   // Variant 1: Just pass an AtomInterface
-  | AtomInterface<Props, State, Selectors, Updaters, Callbacks>
+  | AtomInterface<State, Selectors, Updaters, Callbacks>
   // Variant 2: Pass a function returning an AtomInterface. Used to get callbacks into the Atom
-  | ((
-      props: Props
-    ) => AtomInterface<Props, State, Selectors, Updaters, Callbacks>)
+  | ((props: Props) => AtomInterface<State, Selectors, Updaters, Callbacks>)
 
 type AtomInterface<
-  Props extends AtomProps,
-  State extends AtomState,
-  Selectors extends AtomSelectors<State>,
-  Updaters extends AtomStateUpdaters<State>,
-  Callbacks extends AtomCallbacks
+  State extends BaseState,
+  Selectors extends BaseSelectors<State>,
+  Updaters extends BaseUpdaters<State>,
+  Callbacks extends BaseCallbacks
 > = {
   state: State
   selectors?: Selectors
@@ -62,65 +59,54 @@ type AtomInterface<
  */
 
 type CreateAtomResult<
-  Props extends AtomProps,
-  State extends AtomState,
-  Selectors extends AtomSelectors<State>,
-  Updaters extends AtomStateUpdaters<State>,
-  Callbacks extends AtomCallbacks
-> = [
-  AtomProvider<Props, State, Selectors, Updaters, Callbacks>,
-  AtomHook<Props, State, Selectors, Updaters, Callbacks>
-]
+  Props extends BaseProps,
+  State extends BaseState,
+  Selectors extends BaseSelectors<State>,
+  Updaters extends BaseUpdaters<State>,
+  Callbacks extends BaseCallbacks
+> = [AtomProvider<Props>, AtomHook<State, Selectors, Updaters, Callbacks>]
 
-export type AtomProvider<
-  Props extends AtomProps,
-  State extends AtomState,
-  Selectors extends AtomSelectors<State>,
-  Updaters extends AtomStateUpdaters<State>,
-  Callbacks extends AtomCallbacks
-> = ComponentType<
-  AtomProviderProps<Props, State, Selectors, Updaters, Callbacks>
+export type AtomProvider<Props extends BaseProps> = ComponentType<
+  AtomProviderProps<Props>
 >
 
-type AtomProviderProps<
-  Props extends AtomProps,
-  State extends AtomState,
-  Selectors extends AtomSelectors<State>,
-  Updaters extends AtomStateUpdaters<State>,
-  Callbacks extends AtomCallbacks
-> = Props & {
+type AtomProviderProps<Props extends BaseProps> = Props & {
   children: ReactNode
 }
 
 type AtomHook<
-  Props extends AtomProps,
-  State extends AtomState,
-  Selectors extends AtomSelectors<State>,
-  Updaters extends AtomStateUpdaters<State>,
-  Callbacks extends AtomCallbacks
-> = () => AtomHookValue<Props, State, Selectors, Updaters, Callbacks>
+  State extends BaseState,
+  Selectors extends BaseSelectors<State>,
+  Updaters extends BaseUpdaters<State>,
+  Callbacks extends BaseCallbacks
+> = () => AtomHookValue<State, Selectors, Updaters, Callbacks>
 
 type AtomHookValue<
-  Props extends AtomProps,
-  State extends AtomState,
-  Selectors extends AtomSelectors<State>,
-  Updaters extends AtomStateUpdaters<State>,
-  Callbacks extends AtomCallbacks
+  State extends BaseState,
+  Selectors extends BaseSelectors<State>,
+  Updaters extends BaseUpdaters<State>,
+  Callbacks extends BaseCallbacks
 > =
   // prettier-ignore
   // updateState functions
   { [FunctionName in keyof Updaters]: WithoutFirstParam<Updaters, FunctionName> }
   // callback functions
   & { [FunctionName in keyof Callbacks]: Callbacks[FunctionName] }
-  // state object
-  & { state: State }
+  // state object with selectors merged in
+  & { state: StateWithSelectors<State, Selectors> }
+
+type StateWithSelectors<
+  State extends BaseState,
+  Selectors extends BaseSelectors<State>
+> = State &
+  { [FunctionName in keyof Selectors]: ReturnType<Selectors[FunctionName]> }
 
 /**
  * Helper Types
  */
 
 type WithoutFirstParam<
-  Updaters extends AtomStateUpdaters<any>,
+  Updaters extends BaseUpdaters<any>,
   FunctionName extends keyof Updaters
 > = (...params: TailParams<Updaters[FunctionName]>) => void
 
@@ -133,11 +119,11 @@ type TailParams<Func> = Func extends (head: any, ...tail: infer Tail) => any
  */
 
 export function createAtom<
-  Props extends AtomProps,
-  State extends AtomState,
-  Selectors extends AtomSelectors<State>,
-  Updaters extends AtomStateUpdaters<State>,
-  Callbacks extends AtomCallbacks
+  Props extends BaseProps,
+  State extends BaseState,
+  Selectors extends BaseSelectors<State>,
+  Updaters extends BaseUpdaters<State>,
+  Callbacks extends BaseCallbacks
 >(
   args: CreateAtomArgs<Props, State, Selectors, Updaters, Callbacks>
 ): CreateAtomResult<Props, State, Selectors, Updaters, Callbacks> {
@@ -147,19 +133,11 @@ export function createAtom<
   // Construct React Context that holds the AtomHookValue when provided,
   // but no default value is given (we enforce the use of the Provider)
   const atomContext = createContext<
-    AtomHookValue<Props, State, Selectors, Updaters, Callbacks>
+    AtomHookValue<State, Selectors, Updaters, Callbacks>
   >(null as any)
 
   // Construct Provider component
-  function AtomProvider(
-    providerProps: AtomProviderProps<
-      Props,
-      State,
-      Selectors,
-      Updaters,
-      Callbacks
-    >
-  ) {
+  function AtomProvider(providerProps: AtomProviderProps<Props>) {
     const { children, ...restProps } = providerProps
     const atomProps = (restProps as any) as Props // TS fails us here
 
@@ -167,43 +145,76 @@ export function createAtom<
     const atom = createAtom(atomProps)
     const [state, setState] = useState(atom.state)
 
-    // Create the AtomHookValue using Proxy magic
-    const value: any = new Proxy(
-      {},
-      {
-        // Capture access to all properties of the AtomHookValue
-        get(target, propName, receiver) {
-          // All properties handled by us will be accessed with string keys
-          if (typeof propName != 'string') return undefined
+    // Given an updater function and additional parameters, update the state using Immer
+    const updateState = (updater: any, ...params: any[]) =>
+      setState(produce(state, (draft: State) => updater(draft, ...params)))
 
-          // If the state is accessed, let the caller use it directly
-          if (propName == 'state') return state
-
-          // Otherwise, either a `stateUpdater` or `callback` is called.
-
-          // If it is a callback, let the caller use it directly
-          // (TODO: immer `current`)
-          const callback = atom.callbacks?.[propName]
-          if (callback) return callback
-
-          // It it is a state updater, wrap the function using Immer
-          const update = atom.updaters?.[propName]
-          if (update)
-            return (...params: any[]) => {
-              const nextState = produce(state, (draft: State) =>
-                update(draft, ...params)
-              )
-              setState(nextState)
+    const createStateProxy = (): StateWithSelectors<State, Selectors> =>
+      new Proxy(
+        {},
+        {
+          get(target, propName, receiver) {
+            if (typeof propName != 'string') {
+              // All properties handled by us will be accessed with string keys, so if we get something else, ignore it
+              return undefined
             }
 
-          // We shouldn't get here, better throw an Error
-          throw Error(`unexpected access to ${propName} in AtomHookValue proxy`)
-        },
-      }
-    )
+            const selector = atom.selectors?.[propName]
+            if (selector) {
+              // If it is a selector, calculate the value and return it here
+              // TODO: should we memoize the value?
+              return selector(state)
+            }
+
+            // In all other cases, assume we access a property on the state object directly
+            return state[propName]
+          },
+        }
+      ) as any
+
+    const createAtomProxy = (): AtomHookValue<
+      State,
+      Selectors,
+      Updaters,
+      Callbacks
+    > =>
+      new Proxy(
+        {},
+        {
+          // Capture access to all properties of the AtomHookValue
+          get(target, propName, receiver) {
+            if (typeof propName != 'string') {
+              // All properties handled by us will be accessed with string keys, so if we get something else, ignore it
+              return undefined
+            }
+
+            if (propName == 'state') {
+              // If the state is accessed, return a proxy around it that provides access to the selectors
+              return createStateProxy()
+            }
+
+            const callback = atom.callbacks?.[propName]
+            if (callback) {
+              // If it is a callback, let the caller use it directly
+              // TODO: apply `current` to arguments?!
+              return callback
+            }
+
+            const updater = atom.updaters?.[propName]
+            if (updater) {
+              // It it is a state updater, wrap the function using Immer
+              return (...params: any[]) => updateState(updater, ...params)
+            }
+          },
+        }
+      ) as any
 
     // Provide an implementation of the Context to children
-    return <atomContext.Provider value={value}>{children}</atomContext.Provider>
+    return (
+      <atomContext.Provider value={createAtomProxy()}>
+        {children}
+      </atomContext.Provider>
+    )
   }
 
   // Construct the Hook
@@ -213,13 +224,3 @@ export function createAtom<
 
   return [AtomProvider, useAtom]
 }
-
-// const [MyAtomProvider, useMyAtom] = createAtom({
-//   state: {
-//     firstName: 'Hello',
-//     lastName: 'World',
-//   },
-//   selectors: {
-//     fullName: (s) => `${s.firstName} ${s.lastName}`,
-//   },
-// })
