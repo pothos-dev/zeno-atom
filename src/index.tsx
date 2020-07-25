@@ -17,7 +17,7 @@ type BaseProps = {
 }
 type BaseState = Record<string, any>
 type BaseSelectors<State extends BaseState> = {
-  [functionName: string]: (state: State) => any
+  [functionName: string]: (state: State, ...params: any[]) => any
 }
 type BaseUpdaters<State extends BaseState> = {
   [functionName: string]: (state: State, ...params: any[]) => void
@@ -89,26 +89,28 @@ type AtomHookValue<
 > =
   // prettier-ignore
   // updateState functions
-  { [FunctionName in keyof Updaters]: WithoutFirstParam<Updaters, FunctionName> }
+  { [K in keyof Updaters]: FuncWithTailParams<Updaters[K]> }
   // callback functions
-  & { [FunctionName in keyof Callbacks]: Callbacks[FunctionName] }
+  & { [K in keyof Callbacks]: Callbacks[K] }
   // state object with selectors merged in
   & { state: StateWithSelectors<State, Selectors> }
 
 type StateWithSelectors<
   State extends BaseState,
   Selectors extends BaseSelectors<State>
-> = State &
-  { [FunctionName in keyof Selectors]: ReturnType<Selectors[FunctionName]> }
+> = State & { [K in keyof Selectors]: PropOrFuncWithTailParams<Selectors[K]> }
 
 /**
  * Helper Types
  */
 
-type WithoutFirstParam<
-  Updaters extends BaseUpdaters<any>,
-  FunctionName extends keyof Updaters
-> = (...params: TailParams<Updaters[FunctionName]>) => void
+type PropOrFuncWithTailParams<
+  Func extends (...params: any[]) => any
+> = Func extends (one: any) => any ? ReturnType<Func> : FuncWithTailParams<Func>
+
+type FuncWithTailParams<Func extends (...params: any[]) => any> = (
+  ...params: TailParams<Func>
+) => ReturnType<Func>
 
 type TailParams<Func> = Func extends (head: any, ...tail: infer Tail) => any
   ? Tail
@@ -161,9 +163,14 @@ export function createAtom<
 
             const selector = atom.selectors?.[propName]
             if (selector) {
-              // If it is a selector, calculate the value and return it here
-              // TODO: should we memoize the value?
-              return selector(state)
+              if (selector.length < 2) {
+                // takes 0 or 1 parameters -> evaluate immediately
+                // TODO: should we memoize the value?
+                return selector(state)
+              } else {
+                // takes additional parameters -> inject the state into the selector
+                return (...params: any[]) => selector(state, ...params)
+              }
             }
 
             // In all other cases, assume we access a property on the state object directly
