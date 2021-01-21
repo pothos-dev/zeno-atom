@@ -23,7 +23,7 @@
     "access": "public"
   },
   "dependencies": {
-    "immer": "7.0.5"
+    "immer": "8.0.1"
   },
   "peerDependencies": {
     "react": "16.13.1"
